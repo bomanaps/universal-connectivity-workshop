@@ -1,0 +1,3 @@
+/Users/mercynaps/un/universal-connectivity-workshop/en/cpp/01-identity-and-swarm/app/build/CMakeFiles/lesson.dir
+/Users/mercynaps/un/universal-connectivity-workshop/en/cpp/01-identity-and-swarm/app/build/CMakeFiles/edit_cache.dir
+/Users/mercynaps/un/universal-connectivity-workshop/en/cpp/01-identity-and-swarm/app/build/CMakeFiles/rebuild_cache.dir
