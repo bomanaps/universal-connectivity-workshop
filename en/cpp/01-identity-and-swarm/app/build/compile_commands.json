@@ -1,8 +1,0 @@
-[
-{
-  "directory": "/Users/mercynaps/un/universal-connectivity-workshop/en/cpp/01-identity-and-swarm/app/build",
-  "command": "/usr/bin/c++ -DCARES_STATICLIB -isystem /Users/mercynaps/libp2p/include -isystem /Users/mercynaps/.hunter/_Base/15ca502/f774878/821c742/Install/include -O3 -DNDEBUG -std=c++20 -arch arm64 -o CMakeFiles/lesson.dir/main.cpp.o -c /Users/mercynaps/un/universal-connectivity-workshop/en/cpp/01-identity-and-swarm/app/main.cpp",
-  "file": "/Users/mercynaps/un/universal-connectivity-workshop/en/cpp/01-identity-and-swarm/app/main.cpp",
-  "output": "CMakeFiles/lesson.dir/main.cpp.o"
-}
-]
