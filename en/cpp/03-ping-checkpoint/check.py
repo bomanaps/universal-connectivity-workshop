@@ -105,6 +105,13 @@ def check_output():
     else:
         print("i  No explicit ping messages (may be OK)")
 
+    # Check for RTT measurement
+    rtt_match = re.search(r"Ping RTT to [A-Za-z0-9]+: [\d.]+ms", output)
+    if rtt_match:
+        print(f"v RTT measurement found: {rtt_match.group(0)}")
+    else:
+        print("i  No RTT measurement found (requires remote peer connection)")
+
     # Check for listening
     if "Listening on" in output:
         print("v Host is listening")

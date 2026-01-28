@@ -103,9 +103,9 @@ host->setProtocolHandler(
 std::cout << "Ping protocol: " << ping->getProtocolId() << std::endl;
 ```
 
-### Step 6: Start Pinging After Connection
+### Step 6: Start Pinging After Connection and Measure RTT
 
-When connecting to a remote peer, start the ping session:
+When connecting to a remote peer, start the ping session and measure the round-trip time (RTT). The RTT tells us how long it takes for a ping message to travel to the peer and back:
 
 ```cpp
 host->connect(
@@ -118,14 +118,24 @@ host->connect(
 
         std::cout << "Connected to: " << remote_peer_id.toBase58() << std::endl;
 
-        // Start pinging the connected peer
+        // Start pinging and measure RTT
+        // Record the start time before initiating the ping session
+        auto ping_start = std::make_shared<std::chrono::steady_clock::time_point>(
+            std::chrono::steady_clock::now());
+
         auto conn = conn_result.value();
         ping->startPinging(
             conn,
-            [remote_peer_id, log](auto&& ping_result) {
+            [remote_peer_id, log, ping_start](auto&& ping_result) {
                 if (ping_result.has_value()) {
-                    std::cout << "Ping session started with: "
-                              << remote_peer_id.toBase58() << std::endl;
+                    // Calculate round-trip time
+                    auto elapsed = std::chrono::steady_clock::now() - *ping_start;
+                    auto rtt_us = std::chrono::duration_cast<
+                        std::chrono::microseconds>(elapsed).count();
+                    double rtt_ms = rtt_us / 1000.0;
+
+                    std::cout << "Ping RTT to " << remote_peer_id.toBase58()
+                              << ": " << rtt_ms << "ms" << std::endl;
                 } else {
                     std::cout << "Failed to start ping: "
                               << ping_result.error().message() << std::endl;
@@ -133,6 +143,14 @@ host->connect(
             });
     });
 ```
+
+**What's happening here?**
+
+- `std::chrono::steady_clock` provides a monotonic clock ideal for measuring elapsed time
+- We record the time before `startPinging`, which initiates the ping stream and first data exchange
+- The callback fires after the stream is opened and the first ping round-trip completes
+- We compute the difference in microseconds and convert to milliseconds for display
+- This gives us the **round-trip time (RTT)** — the time for a message to travel to the peer and back
 
 ### Step 7: Subscribe to Peer Dead Events
 
@@ -326,14 +344,22 @@ int main(int argc, char** argv) {
 
                     std::cout << "Connected to: " << remote_peer_id.toBase58() << std::endl;
 
-                    // Start pinging the connected peer
+                    // Start pinging and measure RTT
+                    auto ping_start = std::make_shared<std::chrono::steady_clock::time_point>(
+                        std::chrono::steady_clock::now());
+
                     auto conn = conn_result.value();
                     ping->startPinging(
                         conn,
-                        [remote_peer_id, log](auto&& ping_result) {
+                        [remote_peer_id, log, ping_start](auto&& ping_result) {
                             if (ping_result.has_value()) {
-                                std::cout << "Ping session started with: "
-                                          << remote_peer_id.toBase58() << std::endl;
+                                auto elapsed = std::chrono::steady_clock::now() - *ping_start;
+                                auto rtt_us = std::chrono::duration_cast<
+                                    std::chrono::microseconds>(elapsed).count();
+                                double rtt_ms = rtt_us / 1000.0;
+
+                                std::cout << "Ping RTT to " << remote_peer_id.toBase58()
+                                          << ": " << rtt_ms << "ms" << std::endl;
                             } else {
                                 std::cout << "Failed to start ping: "
                                           << ping_result.error().message() << std::endl;
@@ -346,7 +372,7 @@ int main(int argc, char** argv) {
     });
 
     // Subscribe to ping events
-    auto ping_channel = bus->getChannel<libp2p::event::protocol::PeerIsDeadChannel>();
+    auto& ping_channel = bus->getChannel<libp2p::event::protocol::PeerIsDeadChannel>();
     auto ping_sub = ping_channel.subscribe([](const libp2p::peer::PeerId& peer) {
         std::cout << "Ping timeout - peer is dead: " << peer.toBase58() << std::endl;
     });
@@ -385,8 +411,16 @@ Starting Universal Connectivity Application...
 Local peer id: 12D3KooW...
 Listening on: /ip4/0.0.0.0/tcp/9000
 Ping protocol: /ipfs/ping/1.0.0
+Connecting to: /ip4/127.0.0.1/tcp/9000/p2p/12D3KooW...
+Connected to: 12D3KooW...
+Ping RTT to 12D3KooW...: 2.45ms
 Waiting for connections and pings...
 ```
+
+The **Ping RTT** value shows the round-trip time in milliseconds. Lower values indicate better connectivity. Typical values:
+- **Local (same machine)**: < 1ms
+- **Same network (LAN)**: 1-5ms
+- **Internet**: 10-200ms+
 
 ## Success Criteria
 
@@ -395,6 +429,7 @@ Your implementation should:
 - Successfully listen on the configured port
 - Register the ping protocol handler (`/ipfs/ping/1.0.0`)
 - Handle incoming ping requests automatically
+- **Measure and display round-trip time (RTT)** when pinging peers
 - Start pinging connected peers with configured interval
 - Monitor peer health through event subscriptions
 
