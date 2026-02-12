@@ -1,5 +1,7 @@
 # Lesson 04: QUIC Transport
 
+> **Note:** QUIC support in nim-libp2p is currently in the stabilization phase. The core implementation is complete and functional for this workshop, but you may encounter minor API changes in future releases.
+
 ## Introduction
 
 Now that you understand TCP transport and have implemented the ping protocol, let's explore QUIC - a modern UDP-based transport protocol that provides built-in encryption and multiplexing. You'll learn about nim-libp2p's multi-transport capabilities by adding QUIC support to your application.
